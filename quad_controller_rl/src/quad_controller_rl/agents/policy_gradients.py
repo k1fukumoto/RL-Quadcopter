@@ -1,7 +1,9 @@
 """Policy search agent."""
-
+import os
 import numpy as np
+import pandas as pd
 from quad_controller_rl.agents.base_agent import BaseAgent
+from quad_controller_rl import util
 
 class DDPG(BaseAgent):
     """Sample agent that searches for optimal policy randomly."""
@@ -11,7 +13,8 @@ class DDPG(BaseAgent):
         self.stats_filename = os.path.join(
             util.get_param('out'),
             "stats_{}.csv".format(util.get_timestamp()))
-        self.stats_columns = ['episode', 'total_reward'] 
+        self.stats_columns = ['episode', 'total_reward']
+        self.episode_num = 1
         print("### Saving stats {} to {}".format(self.stats_columns, self.stats_filename))
 
         # Task (environment) information
@@ -69,15 +72,16 @@ class DDPG(BaseAgent):
         
         # Save experience / reward
         if self.last_state is not None and self.last_action is not None:
+            print("### {}: {}: {}".format(done,reward,self.total_reward))
             self.total_reward += reward
             self.count += 1
 
         # Learn, if at end of episode
         if done:
-            self.learn()
-            self.reset_episode_vars()
             self.write_stats([self.episode_num,self.total_reward])
             self.episode_num += 1
+            self.learn()
+            self.reset_episode_vars()
 
         self.last_state = state
         self.last_action = action
