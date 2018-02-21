@@ -7,6 +7,13 @@ class DDPG(BaseAgent):
     """Sample agent that searches for optimal policy randomly."""
 
     def __init__(self, task):
+        # Save episode stats
+        self.stats_filename = os.path.join(
+            util.get_param('out'),
+            "stats_{}.csv".format(util.get_timestamp()))
+        self.stats_columns = ['episode', 'total_reward'] 
+        print("### Saving stats {} to {}".format(self.stats_columns, self.stats_filename))
+
         # Task (environment) information
         self.task = task  # should contain observation_space and action_space
 
@@ -19,7 +26,6 @@ class DDPG(BaseAgent):
         self.action_size = 3
 
         self.action_range = self.task.action_space.high[0:3] - self.task.action_space.low[0:3]
-        print('#####',self.action_range)
 
         # Policy parameters
         self.w = np.random.normal(
@@ -59,7 +65,6 @@ class DDPG(BaseAgent):
         state = state.reshape(1, -1)  # convert to row vector
 
         # Choose an action
-#        print("### policy_search: step {}".format(state))
         action = self.act(state)
         
         # Save experience / reward
@@ -71,6 +76,8 @@ class DDPG(BaseAgent):
         if done:
             self.learn()
             self.reset_episode_vars()
+            self.write_stats([self.episode_num,self.total_reward])
+            self.episode_num += 1
 
         self.last_state = state
         self.last_action = action
@@ -96,3 +103,9 @@ class DDPG(BaseAgent):
         print("RandomPolicySearch.learn(): t = {:4d}, score = {:7.3f} (best = {:7.3f}), noise_scale = {}".format(
                 self.count, score, self.best_score, self.noise_scale))  # [debug]
         #print(self.w)  # [debug: policy parameters]
+
+    def write_stats(self, stats):
+        """Write single episode stats to CSV file."""
+        df_stats = pd.DataFrame([stats], columns=self.stats_columns) 
+        df_stats.to_csv(self.stats_filename, mode='a', index=False,
+            header=not os.path.isfile(self.stats_filename))
