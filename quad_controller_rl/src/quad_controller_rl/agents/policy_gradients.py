@@ -1,4 +1,4 @@
-"""Policy search agent."""
+-"""Policy search agent."""
 import os
 import numpy as np
 import pandas as pd
@@ -72,7 +72,7 @@ class DDPG(BaseAgent):
         
         # Save experience / reward
         if self.last_state is not None and self.last_action is not None:
-            print("### {}: {}: {}".format(done,reward,self.total_reward))
+#            print("### {}: {}: {}".format(done,reward,self.total_reward))
             self.total_reward += reward
             self.count += 1
 
@@ -104,9 +104,9 @@ class DDPG(BaseAgent):
             self.noise_scale = min(2.0 * self.noise_scale, 3.2)
 
         self.w = self.w + self.noise_scale * np.random.normal(size=self.w.shape)  # equal noise in all directions
-        print("RandomPolicySearch.learn(): t = {:4d}, score = {:7.3f} (best = {:7.3f}), noise_scale = {}".format(
-                self.count, score, self.best_score, self.noise_scale))  # [debug]
-        #print(self.w)  # [debug: policy parameters]
+        if (self.episode_num % 20 == 0):
+            print("RandomPolicySearch.learn(): e = {} t = {:4d}, score = {:7.3f} (best = {:7.3f}), noise_scale = {}".format(
+                self.episode_num,self.count, score, self.best_score, self.noise_scale))  # [debug]
 
     def write_stats(self, stats):
         """Write single episode stats to CSV file."""
